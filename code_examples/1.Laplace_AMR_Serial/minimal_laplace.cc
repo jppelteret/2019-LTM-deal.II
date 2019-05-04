@@ -75,6 +75,7 @@ run(const unsigned int n_refinement_cycles, const unsigned int fe_degree)
         dof_handler,
         QGauss<dim - 1>(fe.degree + 1),
         std::map<types::boundary_id, const Function<dim> *>(),
+        //std::map<types::boundary_id, const Function<dim> *>{{0,&boundary_function}},
         solution,
         estimated_error_per_cell);
 
