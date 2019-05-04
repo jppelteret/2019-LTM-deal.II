@@ -69,7 +69,7 @@ run(MPI_Comm mpi_communicator, const unsigned int n_refinement_cycles, const uns
   const ZeroFunction<spacedim> boundary_function;
 
   AffineConstraints<double> constraints;
-  TrilinosWrappers::MPI::Vector solution;
+  TrilinosWrappers::MPI::Vector locally_relevant_solution;
 
   IndexSet locally_owned_dofs;
   IndexSet locally_relevant_dofs;
@@ -83,13 +83,6 @@ run(MPI_Comm mpi_communicator, const unsigned int n_refinement_cycles, const uns
     else
     {
       Vector<float> estimated_error_per_cell(tria.n_active_cells());
-
-      TrilinosWrappers::MPI::Vector locally_relevant_solution(
-        locally_owned_dofs,
-        locally_relevant_dofs,
-        mpi_communicator);
-      locally_relevant_solution = solution;
-
       KellyErrorEstimator<dim>::estimate(
         dof_handler,
         QGauss<dim - 1>(fe.degree + 1),
@@ -101,16 +94,16 @@ run(MPI_Comm mpi_communicator, const unsigned int n_refinement_cycles, const uns
       parallel::distributed::GridRefinement::refine_and_coarsen_fixed_number(
         tria, estimated_error_per_cell,
         0.3, 0.03);
+      tria.execute_coarsening_and_refinement();
     }
 
-    tria.execute_coarsening_and_refinement();
     dof_handler.distribute_dofs(fe);
 
     locally_owned_dofs = dof_handler.locally_owned_dofs();
     DoFTools::extract_locally_relevant_dofs(dof_handler, locally_relevant_dofs);
 
     constraints.clear();
-    constraints.reinit(locally_relevant_dofs);
+    // constraints.reinit(locally_relevant_dofs);
     DoFTools::make_hanging_node_constraints(dof_handler, constraints);
     VectorTools::interpolate_boundary_values(dof_handler,
                                              0,
@@ -137,7 +130,10 @@ run(MPI_Comm mpi_communicator, const unsigned int n_refinement_cycles, const uns
     }
 
     TrilinosWrappers::MPI::Vector system_rhs(locally_owned_dofs, mpi_communicator);
-    solution.reinit(locally_owned_dofs, mpi_communicator);
+    locally_relevant_solution.reinit(
+      locally_owned_dofs,
+      locally_relevant_dofs,
+      mpi_communicator);
 
     UpdateFlags cell_flags = update_values | update_gradients |
                              update_quadrature_points | update_JxW_values;
@@ -182,12 +178,12 @@ run(MPI_Comm mpi_communicator, const unsigned int n_refinement_cycles, const uns
         system_matrix, system_rhs);
     };
 
-    system_matrix.compress(VectorOperation::add);
-    system_rhs.compress(VectorOperation::add);
-
     MeshWorker::mesh_loop(cell, endc, cell_worker, 
                           copier, scratch, copy, 
                           MeshWorker::assemble_own_cells);
+
+    system_matrix.compress(VectorOperation::add);
+    system_rhs.compress(VectorOperation::add);
 
     SolverControl solver_control(system_matrix.m(), 1e-12);
     SolverCG<TrilinosWrappers::MPI::Vector> solver(solver_control);
@@ -196,16 +192,23 @@ run(MPI_Comm mpi_communicator, const unsigned int n_refinement_cycles, const uns
     additional_data.higher_order_elements = (fe.degree > 1);
     preconditioner.initialize(system_matrix, additional_data);
 
-    solver.solve(system_matrix, solution, system_rhs, preconditioner);
-    constraints.distribute(solution);
+    TrilinosWrappers::MPI::Vector distributed_solution (locally_owned_dofs, mpi_communicator);
+    solver.solve(system_matrix, distributed_solution, system_rhs, preconditioner);
+    constraints.distribute(distributed_solution);
+    locally_relevant_solution = distributed_solution;
 
     DataOutBase::VtkFlags output_flags;
     output_flags.write_higher_order_cells = true;
 
+    Vector<float> subdomain(tria.n_active_cells());
+      for (unsigned int i = 0; i < subdomain.size(); ++i)
+      subdomain(i) = tria.locally_owned_subdomain();
+
     DataOut<dim> data_out;
     data_out.set_flags(output_flags);
     data_out.attach_dof_handler(dof_handler);
-    data_out.add_data_vector(solution, "solution");
+    data_out.add_data_vector(locally_relevant_solution, "solution");
+    data_out.add_data_vector(subdomain, "subdomain");
     data_out.build_patches(fe_degree);
 
     std::ofstream output(
