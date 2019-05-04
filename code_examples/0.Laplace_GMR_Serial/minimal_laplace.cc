@@ -67,7 +67,6 @@ run(const unsigned int n_refinement_cycles, const unsigned int fe_degree)
     dof_handler.distribute_dofs(fe);
 
     constraints.clear();
-    DoFTools::make_hanging_node_constraints(dof_handler, constraints);
     VectorTools::interpolate_boundary_values(dof_handler,
                                              0,
                                              boundary_function,
