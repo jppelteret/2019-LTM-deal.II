@@ -86,8 +86,8 @@ run(const unsigned int n_refinement_cycles, const unsigned int fe_degree)
     Vector<double> solution(dof_handler.n_dofs());
     Vector<double> system_rhs(dof_handler.n_dofs());
 
-    UpdateFlags cell_flags = update_values | update_gradients |
-                             update_quadrature_points | update_JxW_values;
+    const UpdateFlags cell_flags = update_values | update_gradients |
+                                   update_quadrature_points | update_JxW_values;
 
     using ScratchData = MeshWorker::ScratchData<dim, spacedim>;
     using CopyData    = MeshWorker::CopyData<1, 1, 1>;

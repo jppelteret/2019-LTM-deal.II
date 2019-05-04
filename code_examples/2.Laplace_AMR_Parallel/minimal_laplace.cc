@@ -133,8 +133,8 @@ run(MPI_Comm mpi_communicator, const unsigned int n_refinement_cycles, const uns
       locally_relevant_dofs,
       mpi_communicator);
 
-    UpdateFlags cell_flags = update_values | update_gradients |
-                             update_quadrature_points | update_JxW_values;
+    const UpdateFlags cell_flags = update_values | update_gradients |
+                                   update_quadrature_points | update_JxW_values;
 
     using ScratchData = MeshWorker::ScratchData<dim, spacedim>;
     using CopyData    = MeshWorker::CopyData<1, 1, 1>;
