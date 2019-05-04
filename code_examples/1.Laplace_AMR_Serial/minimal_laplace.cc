@@ -61,12 +61,13 @@ run(const unsigned int n_refinement_cycles, const unsigned int fe_degree)
   AffineConstraints<double> constraints;
   Vector<double> solution;
 
-  GridGenerator::hyper_L(tria);
-
   for (unsigned int cycle=0; cycle < n_refinement_cycles; ++cycle)
   {
     if (cycle == 0)
+    {
+      GridGenerator::hyper_L(tria);
       tria.refine_global(1);
+    }
     else
     {
       Vector<float> estimated_error_per_cell(tria.n_active_cells());

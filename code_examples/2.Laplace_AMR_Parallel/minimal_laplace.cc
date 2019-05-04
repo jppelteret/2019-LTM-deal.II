@@ -74,12 +74,13 @@ run(MPI_Comm mpi_communicator, const unsigned int n_refinement_cycles, const uns
   IndexSet locally_owned_dofs;
   IndexSet locally_relevant_dofs;
 
-  GridGenerator::hyper_L(tria);
-
   for (unsigned int cycle=0; cycle < n_refinement_cycles; ++cycle)
   {
     if (cycle == 0)
+    {
+      GridGenerator::hyper_L(tria);
       tria.refine_global(1);
+    }
     else
     {
       Vector<float> estimated_error_per_cell(tria.n_active_cells());
