@@ -59,11 +59,8 @@ run(MPI_Comm mpi_communicator, const unsigned int n_refinement_cycles, const uns
   const QGauss<dim>     cell_quadrature(fe.degree+1);
   const QGauss<dim - 1> face_quadrature(fe.degree+1);
 
-  parallel::distributed::Triangulation<dim, spacedim> tria (
-    mpi_communicator, typename Triangulation<dim>::MeshSmoothing(
-      Triangulation<dim>::smoothing_on_refinement | 
-      Triangulation<dim>::smoothing_on_coarsening));
-  DoFHandler<dim, spacedim>    dof_handler(tria);
+  parallel::distributed::Triangulation<dim, spacedim> tria (mpi_communicator);
+  DoFHandler<dim, spacedim> dof_handler(tria);
 
   const ConstantFunction<spacedim> rhs_function(1);
   const ZeroFunction<spacedim> boundary_function;
