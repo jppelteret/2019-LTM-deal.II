@@ -63,7 +63,6 @@ run(const unsigned int n_refinement_cycles, const unsigned int fe_degree)
   for (unsigned int cycle=0; cycle < n_refinement_cycles; ++cycle)
   {
     tria.refine_global(1);
-    tria.execute_coarsening_and_refinement();
     dof_handler.distribute_dofs(fe);
 
     constraints.clear();
