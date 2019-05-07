@@ -137,10 +137,7 @@ run(const unsigned int n_refinement_cycles, const unsigned int fe_degree)
     ScratchData scratch(fe, cell_quadrature, cell_flags);
     CopyData    copy(fe.dofs_per_cell);
 
-    auto cell = dof_handler.begin_active();
-    const auto endc = dof_handler.end();
-
-    using Iterator = decltype(cell);
+    using Iterator = decltype(dof_handler.begin_active());
 
     auto cell_worker =
       [&rhs_function](const Iterator &cell, ScratchData &scratch_data, CopyData &copy_data) {
@@ -171,7 +168,7 @@ run(const unsigned int n_refinement_cycles, const unsigned int fe_degree)
         system_matrix, system_rhs);
     };
 
-    MeshWorker::mesh_loop(cell, endc, cell_worker, 
+    MeshWorker::mesh_loop(dof_handler.active_cell_iterators(), cell_worker, 
                           copier, scratch, copy, 
                           MeshWorker::assemble_own_cells);
 
