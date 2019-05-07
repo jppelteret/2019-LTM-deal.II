@@ -75,9 +75,8 @@ template <int dim, int spacedim>
 void
 run(MPI_Comm mpi_communicator, const unsigned int n_refinement_cycles, const unsigned int fe_degree)
 {
-  const FE_Q<dim, spacedim>    fe(fe_degree);
-  const QGauss<dim>     cell_quadrature(fe.degree+1);
-  const QGauss<dim - 1> face_quadrature(fe.degree+1);
+  const FE_Q<dim, spacedim> fe(fe_degree);
+  const QGauss<dim>         cell_quadrature(fe.degree+1);
 
   parallel::distributed::Triangulation<dim, spacedim> tria (mpi_communicator);
   DoFHandler<dim, spacedim> dof_handler(tria);
