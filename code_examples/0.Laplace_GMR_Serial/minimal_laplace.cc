@@ -42,6 +42,24 @@
 
 using namespace dealii;
 
+
+template <int dim, int spacedim>
+void
+run(const unsigned int n_refinement_cycles, const unsigned int fe_degree);
+
+
+int
+main()
+{
+  constexpr int dim = 2;
+  constexpr int spacedim = 2;
+  constexpr unsigned int n_refinement_cycles = 6;
+  constexpr unsigned int fe_degree = 1;
+
+  run<dim, spacedim>(n_refinement_cycles, fe_degree);
+}
+
+
 template <int dim, int spacedim>
 void
 run(const unsigned int n_refinement_cycles, const unsigned int fe_degree)
@@ -150,16 +168,4 @@ run(const unsigned int n_refinement_cycles, const unsigned int fe_degree)
                          std::to_string(cycle) + ".vtu");
     data_out.write_vtu(output);
   }
-}
-
-
-int
-main()
-{
-  constexpr int dim = 2;
-  constexpr int spacedim = 2;
-  constexpr unsigned int n_refinement_cycles = 6;
-  constexpr unsigned int fe_degree = 1;
-
-  run<dim, spacedim>(n_refinement_cycles, fe_degree);
 }

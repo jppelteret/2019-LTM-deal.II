@@ -53,6 +53,26 @@ using namespace dealii;
 
 template <int dim, int spacedim>
 void
+run(MPI_Comm mpi_communicator, const unsigned int n_refinement_cycles, const unsigned int fe_degree);
+
+
+int
+main(int argc, char *argv[])
+{
+  constexpr int dim = 2;
+  constexpr int spacedim = 2;
+  constexpr unsigned int n_refinement_cycles = 8;
+  constexpr unsigned int fe_degree = 1;
+
+  Utilities::MPI::MPI_InitFinalize mpi_initialization(argc, argv);
+  MPI_Comm mpi_communicator (MPI_COMM_WORLD);
+
+  run<dim, spacedim>(mpi_communicator, n_refinement_cycles, fe_degree);
+}
+
+
+template <int dim, int spacedim>
+void
 run(MPI_Comm mpi_communicator, const unsigned int n_refinement_cycles, const unsigned int fe_degree)
 {
   const FE_Q<dim, spacedim>    fe(fe_degree);
@@ -206,25 +226,10 @@ run(MPI_Comm mpi_communicator, const unsigned int n_refinement_cycles, const uns
     data_out.attach_dof_handler(dof_handler);
     data_out.add_data_vector(locally_relevant_solution, "solution");
     data_out.add_data_vector(subdomain, "subdomain");
-    data_out.build_patches(fe_degree);
+    data_out.build_patches(fe.degree);
 
     const std::string filename("solution-" + std::to_string(dim) + "d-" +
                                std::to_string(cycle) + ".vtu");
     data_out.write_vtu_in_parallel(filename, mpi_communicator);
   }
-}
-
-
-int
-main(int argc, char *argv[])
-{
-  constexpr int dim = 2;
-  constexpr int spacedim = 2;
-  constexpr unsigned int n_refinement_cycles = 8;
-  constexpr unsigned int fe_degree = 1;
-
-  Utilities::MPI::MPI_InitFinalize mpi_initialization(argc, argv);
-  MPI_Comm mpi_communicator (MPI_COMM_WORLD);
-
-  run<dim, spacedim>(mpi_communicator, n_refinement_cycles, fe_degree);
 }
