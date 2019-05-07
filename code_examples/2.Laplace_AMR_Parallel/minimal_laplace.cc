@@ -119,7 +119,7 @@ run(MPI_Comm mpi_communicator, const unsigned int n_refinement_cycles, const uns
     DoFTools::extract_locally_relevant_dofs(dof_handler, locally_relevant_dofs);
 
     constraints.clear();
-    // constraints.reinit(locally_relevant_dofs);
+    constraints.reinit(locally_relevant_dofs);
     DoFTools::make_hanging_node_constraints(dof_handler, constraints);
     VectorTools::interpolate_boundary_values(dof_handler,
                                              0,
@@ -191,7 +191,11 @@ run(MPI_Comm mpi_communicator, const unsigned int n_refinement_cycles, const uns
         system_matrix, system_rhs);
     };
 
-    MeshWorker::mesh_loop(dof_handler.active_cell_iterators(), cell_worker, 
+    const auto filtered_iterator_range =
+      filter_iterators(dof_handler.active_cell_iterators(),
+                       IteratorFilters::LocallyOwnedCell());
+
+    MeshWorker::mesh_loop(filtered_iterator_range, cell_worker, 
                           copier, scratch, copy, 
                           MeshWorker::assemble_own_cells);
 
