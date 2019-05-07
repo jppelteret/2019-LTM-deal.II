@@ -104,8 +104,7 @@ run(MPI_Comm mpi_communicator, const unsigned int n_refinement_cycles, const uns
       KellyErrorEstimator<dim>::estimate(
         dof_handler,
         QGauss<dim - 1>(fe.degree + 1),
-        std::map<types::boundary_id, const Function<dim> *>(),
-        //std::map<types::boundary_id, const Function<dim> *>{{0,&boundary_function}},
+        std::map<types::boundary_id, const Function<dim> *>{{0,&boundary_function}},
         locally_relevant_solution,
         estimated_error_per_cell);
 
