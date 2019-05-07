@@ -195,14 +195,13 @@ run(MPI_Comm mpi_communicator, const unsigned int n_refinement_cycles, const uns
     constraints.distribute(distributed_solution);
     locally_relevant_solution = distributed_solution;
 
-    DataOutBase::VtkFlags output_flags;
-    output_flags.write_higher_order_cells = true;
-
     Vector<float> subdomain(tria.n_active_cells());
       for (unsigned int i = 0; i < subdomain.size(); ++i)
         subdomain(i) = tria.locally_owned_subdomain();
 
     DataOut<dim> data_out;
+    DataOutBase::VtkFlags output_flags;
+    output_flags.write_higher_order_cells = true;
     data_out.set_flags(output_flags);
     data_out.attach_dof_handler(dof_handler);
     data_out.add_data_vector(locally_relevant_solution, "solution");
