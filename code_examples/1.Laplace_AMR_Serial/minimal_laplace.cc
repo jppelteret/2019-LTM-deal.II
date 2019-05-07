@@ -172,8 +172,8 @@ run(const unsigned int n_refinement_cycles, const unsigned int fe_degree)
     data_out.build_patches(fe_degree);
 
     std::ofstream output("solution-" + std::to_string(dim) + "d-" +
-                         std::to_string(cycle) + ".vtk");
-    data_out.write_vtk(output);
+                         std::to_string(cycle) + ".vtu");
+    data_out.write_vtu(output);
   }
 }
 

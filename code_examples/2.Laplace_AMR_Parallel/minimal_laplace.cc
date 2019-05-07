@@ -200,7 +200,7 @@ run(MPI_Comm mpi_communicator, const unsigned int n_refinement_cycles, const uns
 
     Vector<float> subdomain(tria.n_active_cells());
       for (unsigned int i = 0; i < subdomain.size(); ++i)
-      subdomain(i) = tria.locally_owned_subdomain();
+        subdomain(i) = tria.locally_owned_subdomain();
 
     DataOut<dim> data_out;
     data_out.set_flags(output_flags);
@@ -209,41 +209,9 @@ run(MPI_Comm mpi_communicator, const unsigned int n_refinement_cycles, const uns
     data_out.add_data_vector(subdomain, "subdomain");
     data_out.build_patches(fe_degree);
 
-    std::ofstream output(
-      "solution-" + std::to_string(dim) + "d-" +
-      Utilities::int_to_string(cycle, 2) + "." +
-      Utilities::int_to_string(tria.locally_owned_subdomain(), 4) + ".vtu");
-    data_out.write_vtu(output);
-
-    if (Utilities::MPI::this_mpi_process(mpi_communicator) == 0)
-      {
-        std::vector<std::string> filenames_vtu;
-        for (unsigned int i = 0;
-             i < Utilities::MPI::n_mpi_processes(mpi_communicator);
-             ++i)
-          filenames_vtu.push_back(
-            "solution-" + std::to_string(dim) + "d-" +
-            Utilities::int_to_string(cycle, 2) + "." +
-            Utilities::int_to_string(i, 4) + ".vtu");
-
-        std::ofstream pvtu_output(
-          "solution-" + std::to_string(dim) + "d-" + 
-          Utilities::int_to_string(cycle, 2) + ".pvtu");
-        data_out.write_pvtu_record(pvtu_output, filenames_vtu);
-      }
-  }
-
-  if (Utilities::MPI::this_mpi_process(mpi_communicator) == 0)
-  {
-    std::vector<std::pair<double,std::string>> cycle_and_filenames_pvtu;
-    for (unsigned int c = 0; c < n_refinement_cycles; ++c)
-      cycle_and_filenames_pvtu.push_back(std::make_pair(
-        c, "solution-" + std::to_string(dim) + "d-" + 
-        Utilities::int_to_string(c, 2) + ".pvtu"));
-
-    std::ofstream pvd_output(
-      "solution-" + std::to_string(dim) + "d" + ".pvd");
-    DataOutBase::write_pvd_record(pvd_output, cycle_and_filenames_pvtu);
+    const std::string filename("solution-" + std::to_string(dim) + "d-" +
+                               std::to_string(cycle) + ".vtu");
+    data_out.write_vtu_in_parallel(filename, mpi_communicator);
   }
 }
 
